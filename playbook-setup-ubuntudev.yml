@@ -1,0 +1,93 @@
+---
+# ansible playbook to setup a ubuntu development box
+- hosts: localhost
+
+  vars:
+    visual_studio_code_version: ''
+    visual_studio_code_mirror: 'https://packages.microsoft.com'
+    visual_studio_code_build: stable
+    visual_studio_code_package: "{{ (visual_studio_code_build == 'insiders') | ternary('code-insiders', 'code') }}"
+    username: seb
+    
+  tasks:
+  - name: Install git
+    become: yes
+    apt:
+      name: git
+      state: present
+ 
+  - name: Install VS Code dependencies
+    become: yes
+    apt:
+      name:
+        - ca-certificates
+        - apt-transport-https
+        - gconf2
+        - libasound2
+        - libgtk2.0-0
+      state: present
+      update_cache: yes
+ 
+  - name: Install https://packages.microsoft.com key
+    become: yes
+    apt_key:
+      url: '{{ visual_studio_code_mirror }}/keys/microsoft.asc'
+      state: present
+ 
+  - name: Install VS Code repo
+    become: yes
+    apt_repository:
+      repo: 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main'
+      filename: vscode
+      state: present
+ 
+  - name: Install VS Code
+    become: yes
+    apt:
+      name: "{{ visual_studio_code_package }}{{ (visual_studio_code_version | length > 0) | ternary('=' + visual_studio_code_version, '') }}"
+      state: present
+      update_cache: yes
+
+# As there is no official az cli repo for ubuntu 20.04, we have to use an older version 'bionic' instead ...
+# 2020-05-19 
+  - name: Install Azure CLI repo
+    become: yes
+    apt_repository:
+      repo: 'deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli bionic main'
+      filename: azure-cli
+      state: present
+
+  - name: Install Azure CLI 
+    become: yes
+    apt:
+      name: azure-cli
+      state: present
+      update_cache: yes
+
+  - name: Install virtualenvwrapper
+    become: yes
+    apt:
+      name: virtualenvwrapper
+      state: present
+
+  - name: Install Powerline GO
+    become: yes
+    apt:
+      name: powerline
+      state: present
+
+  - name: Configure Powerline GO in .bashrc
+    blockinfile:
+        path: "/home/{{ username }}/.bashrc"
+        backup: yes 
+        marker: "# {mark} Powerline configuration"
+        state: present
+        block: | 
+          # Powerline configuration
+          if [ -f /usr/share/powerline/bindings/bash/powerline.sh ]; then
+            powerline-daemon -q
+            POWERLINE_BASH_CONTINUATION=1
+            POWERLINE_BASH_SELECT=1
+            source /usr/share/powerline/bindings/bash/powerline.sh
+          fi
+...
