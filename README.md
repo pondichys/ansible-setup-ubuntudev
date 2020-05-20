@@ -9,6 +9,8 @@ The only prerequisites are :
 * Ubuntu 20.04 installed
 * ansible installed: ansible version 2.9.6 is part of the standard repo of Ubuntu 20.04. Installation is straightforward. Run the following commands in a terminal : `sudo apt update && sudo apt install -y ansible && sudo apt install -y git`
 
+> The commands are also available in a gist available here : [setup-ansible.sh](https://gist.github.com/pondichys/b4b7c1e17d22ae2d6f2d1c91611707f8)
+
 ## Running the playbook
 
 Clone this repository.
