@@ -64,10 +64,10 @@
       state: present
       update_cache: yes
 
-  - name: Install virtualenvwrapper
+  - name: Install virtualenvwrapper and python3-venv (latter needed for az function local debug)
     become: yes
     apt:
-      name: virtualenvwrapper
+      name: [virtualenvwrapper,python3-venv]
       state: present
 
   - name: Install Powerline GO
