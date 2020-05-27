@@ -32,4 +32,5 @@ The following packages are installed by this playbook:
 * [azure-cli](https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest)
 > Remark: at this time (2020-05-20) there is no packages available of azure-cli for Ubuntu 20.04. We use the package from 18.04 as a workaround ...
 * [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/)
+* [python3-venv](https://docs.python.org/3/library/venv.html) for Azure Functions project creation in VSCode
 * [powerline go](https://github.com/justjanne/powerline-go)
