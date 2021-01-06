@@ -5,6 +5,7 @@
 
   vars:
     ms_mirror: 'https://packages.microsoft.com'
+    jq_version: '1.6'
     kubectl_version: '1.20.0'
     kind_version: '0.9.0'
     k9s_version: '0.24.2'
@@ -18,6 +19,13 @@
       name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2]
       state: present
  
+  - name: Download and install jq
+    become: yes
+    get_url:
+      url: https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64
+      dest: /usr/local/bin/jq
+      mode: 0755
+
   - name: Install https://packages.microsoft.com key
     become: yes
     apt_key:
