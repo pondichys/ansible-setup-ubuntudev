@@ -11,7 +11,7 @@
     kubectl_version: '1.20.0'
     kind_version: '0.10.0'
     k9s_version: '0.24.2'
-    helm_version: '3.4.2'
+    helm_version: '3.5.2'
     calicoctl_version: '3.17.1'
     username: seb
     
