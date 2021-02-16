@@ -19,7 +19,7 @@
   - name: Install base packages
     become: yes
     apt:
-      name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2,unzip]
+      name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2,unzip,tree]
       state: present
  
   - name: Install zsh
