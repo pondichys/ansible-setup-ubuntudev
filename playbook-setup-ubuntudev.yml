@@ -5,6 +5,7 @@
 
   vars:
     ms_mirror: 'https://packages.microsoft.com'
+    scw_version: '2.3.0'
     jq_version: '1.6'
     packer_version: '1.6.6'
     terraform_version: '0.14.7'
@@ -27,6 +28,13 @@
     apt:
       name: zsh
       state: present
+  
+  - name: Download and install Scaleway CLI version {{ scw_version }}
+    become: yes
+    get_url:
+      url: https://github.com/scaleway/scaleway-cli/releases/download/v{{ scw_version }}/scw-{{ scw_version }}-linux-x86_64
+      dest: /usr/local/bin/scw
+      mode: 0755
       
   - name: Download and install jq version {{ jq_version }}
     become: yes
