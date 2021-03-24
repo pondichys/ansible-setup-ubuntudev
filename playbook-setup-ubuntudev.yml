@@ -9,7 +9,7 @@
     jq_version: '1.6'
     packer_version: '1.6.6'
     terraform_version: '0.14.7'
-    kubectl_version: '1.20.2'
+    kubectl_version: '1.20.4'
     kind_version: '0.10.0'
     k9s_version: '0.24.3'
     helm_version: '3.5.2'
