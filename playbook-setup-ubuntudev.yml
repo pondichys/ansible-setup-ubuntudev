@@ -11,7 +11,8 @@
     terraform_version: '0.14.7'
     kubectl_version: '1.20.4'
     kind_version: '0.10.0'
-    k9s_version: '0.24.3'
+    k3d_version: '4.4.1'
+    k9s_version: '0.24.7'
     helm_version: '3.5.2'
     calicoctl_version: '3.17.1'
     username: seb
@@ -91,6 +92,13 @@
     get_url:
       url: https://kind.sigs.k8s.io/dl/v{{ kind_version }}/kind-linux-amd64
       dest: /usr/local/bin/kind
+      mode: 0755
+
+  - name: Download and install k3d version {{ k3d_version }}
+    become: yes
+    get_url:
+      url: https://github.com/rancher/k3d/releases/download/v{{ k3d_version }}/k3d-linux-amd64
+      dest: /usr/local/bin/k3d
       mode: 0755
 
   - name: Download k9s version {{ k9s_version }}
