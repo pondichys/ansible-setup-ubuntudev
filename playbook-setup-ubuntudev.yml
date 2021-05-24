@@ -119,7 +119,7 @@
 
   - name: Download k9s version {{ k9s_version }}
     unarchive:
-      src: https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_x86_64.tar.gz
+      src: https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_v{{ k9s_version }}_Linux_x86_64.tar.gz
       dest: /tmp
       remote_src: yes
       mode: 0755
