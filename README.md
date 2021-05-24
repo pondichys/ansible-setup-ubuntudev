@@ -20,7 +20,7 @@ Adapt the user variable if needed (or pass it through `-e` argument).
 Run the playbook with `-K` option to supply the `sudo` password.
 
 ```bash
-ansible-playbook playbook-setup-ubuntudev -K
+ansible-playbook playbook-setup-ubuntudev.yml -K
 ```
 
 ## Packages installed
