@@ -33,8 +33,8 @@
 
   - name: Setup zsh as default shell for user {{ username }}
     become: yes
-    ansible.builtin.users:
-      name: '{{ username }}'
+    user:
+      name: "{{ username }}"
       shell: /usr/bin/zsh
   
   - name: Download and install Scaleway CLI version {{ scw_version }}
