@@ -5,7 +5,7 @@
 
   vars:
     ms_mirror: 'https://packages.microsoft.com'
-    scw_version: '2.3.0'
+    scw_version: '2.3.1'
     jq_version: '1.6'
     packer_version: '1.6.6'
     terraform_version: '0.14.7'
