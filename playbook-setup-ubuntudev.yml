@@ -7,6 +7,7 @@
     ms_mirror: 'https://packages.microsoft.com'
     scw_version: '2.3.1'
     jq_version: '1.6'
+    gotask_version: '3.4.3'
     packer_version: '1.6.6'
     terraform_version: '0.14.7'
     kubectl_version: '1.20.4'
@@ -51,6 +52,14 @@
       url: https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64
       dest: /usr/local/bin/jq
       mode: 0755
+
+  - name: Download and install task version {{ gotask_version }}
+    become: yes
+    unarchive:
+      src: https://github.com/go-task/task/releases/download/v{{ gotask_version }}/task_linux_amd64.tar.gz
+      dest: /usr/local/bin
+      mode: 0755
+      remote_src: yes
 
   - name: Download and install Hashicorp Packer version {{ packer_version }}
     become: yes
