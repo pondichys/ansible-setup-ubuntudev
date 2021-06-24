@@ -9,7 +9,7 @@
     jq_version: '1.6'
     gotask_version: '3.4.3'
     packer_version: '1.6.6'
-    terraform_version: '0.14.7'
+    terraform_version: '1.0.0'
     kubectl_version: '1.20.4'
     kubectx_version: '0.9.3'
     kustomize_version: '4.1.2'
@@ -17,7 +17,7 @@
     k3d_version: '4.4.4'
     k9s_version: '0.24.10'
     helm_version: '3.5.2'
-    calicoctl_version: '3.17.1'
+    calicoctl_version: '3.19.1'
     username: seb
     
   tasks:
