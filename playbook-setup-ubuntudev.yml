@@ -17,6 +17,7 @@
     k3d_version: '4.4.4'
     k9s_version: '0.24.10'
     helm_version: '3.5.2'
+    flux_version: '0.15.3'
     calicoctl_version: '3.19.1'
     username: seb
     
@@ -174,6 +175,22 @@
     become: yes
     copy:
       src: /tmp/linux-amd64/helm
+      dest: /usr/local/bin
+      mode: 0755
+      remote_src: yes
+  
+  - name: Download Flux CLI version {{ flux_version }}
+    become: yes
+    unarchive:
+      src: https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_linux_amd64.tar.gz
+      dest: /tmp
+      remote_src: yes
+      mode: 0755
+
+  - name: Copy flux binary to /usr/local/bin
+    become: yes
+    copy:
+      src: /tmp/flux
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
