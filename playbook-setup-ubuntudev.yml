@@ -16,7 +16,7 @@
     sops_version: '3.7.1'
     kind_version: '0.10.0'
     k3d_version: '4.4.4'
-    k9s_version: '0.24.10'
+    k9s_version: '0.24.11'
     helm_version: '3.5.2'
     flux_version: '0.15.3'
     calicoctl_version: '3.19.1'
@@ -159,7 +159,7 @@
 
   - name: Download k9s version {{ k9s_version }}
     unarchive:
-      src: https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_v{{ k9s_version }}_Linux_x86_64.tar.gz
+      src: https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_x86_64.tar.gz
       dest: /tmp
       remote_src: yes
       mode: 0755
