@@ -13,6 +13,7 @@
     kubectl_version: '1.20.4'
     kubectx_version: '0.9.3'
     kustomize_version: '4.1.2'
+    sops_version: '3.7.1'
     kind_version: '0.10.0'
     k3d_version: '4.4.4'
     k9s_version: '0.24.10'
@@ -134,6 +135,13 @@
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
+
+  - name: Mozilla SOPS version {{ sops_version }}
+    become: yes
+    get_url:
+      url: https://github.com/mozilla/sops/releases/download/v{{ sops_version }}/sops-v{{ sops_version }}.linux
+      dest: /usr/local/bin/sops
+      mode: 0755
 
   - name: Download and install kind version {{ kind_version }}
     become: yes
