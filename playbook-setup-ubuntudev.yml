@@ -19,7 +19,7 @@
     sops_version: '3.7.1'
     kind_version: '0.10.0'
     k3d_version: '5.1.0'
-    k9s_version: '0.25.3'
+    k9s_version: '0.25.8'
     helm_version: '3.7.0'
     flux_version: '0.16.0'
     calicoctl_version: '3.19.1'
@@ -43,6 +43,10 @@
     user:
       name: "{{ username }}"
       shell: /usr/bin/zsh
+
+  - name: Install pre-commit with pip
+    pip:
+      name: pre-commit
   
   - name: Download and install Scaleway CLI version {{ scw_version }}
     become: yes
