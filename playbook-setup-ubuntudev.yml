@@ -44,6 +44,12 @@
       name: "{{ username }}"
       shell: /usr/bin/zsh
 
+  - name: Install podman package
+    become: yes 
+    apt:
+      name: podman
+      state: present
+
   - name: Install pre-commit with pip
     pip:
       name: pre-commit
