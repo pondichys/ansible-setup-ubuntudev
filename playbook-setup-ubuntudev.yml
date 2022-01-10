@@ -29,7 +29,7 @@
   - name: Install base packages
     become: yes
     apt:
-      name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2,unzip,tree]
+      name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2,unzip,tree,stow]
       state: present
  
   - name: Install zsh
@@ -43,6 +43,12 @@
     user:
       name: "{{ username }}"
       shell: /usr/bin/zsh
+
+  - name: Install podman package
+    become: yes 
+    apt:
+      name: podman
+      state: present
 
   - name: Install pre-commit with pip
     pip:
