@@ -7,6 +7,7 @@
     ms_mirror: 'https://packages.microsoft.com'
     scw_version: '2.4.0'
     jq_version: '1.6'
+    yq_version: '4.23.1'
     gotask_version: '3.9.2'
     githubcli_version: '1.13.1'
     packer_version: '1.8.0'
@@ -64,6 +65,14 @@
       - containerd.io
       state: present
 
+  - name: Add user {{ username }} to docker group
+    become: yes
+    user:
+      name: "{{ username }}"
+      append: yes
+      groups: 
+      - docker
+
   - name: Install pre-commit with pip
     pip:
       name: pre-commit
@@ -82,6 +91,14 @@
       dest: /usr/local/bin/jq
       mode: 0755
 
+  - name: Download and install yq version {{ yq_version }}
+    become: yes
+    get_url:
+      url: https://github.com/mikefarah/yq/releases/download/v{{ yq_version }}/yq_linux_amd64
+      dest: /usr/local/bin/yq
+      mode: 0755
+
+
   - name: Download and install task version {{ gotask_version }}
     become: yes
     unarchive:
@@ -90,18 +107,18 @@
       mode: 0755
       remote_src: yes
 
-  - name: Download Github CLI version {{githubcli_version}}
+  - name: Download Github CLI version {{ githubcli_version }}
     become: yes
     unarchive:
-      src: https://github.com/cli/cli/releases/download/v{{githubcli_version}}/gh_{{githubcli_version}}_linux_amd64.tar.gz
+      src: https://github.com/cli/cli/releases/download/v{{ githubcli_version }}/gh_{{ githubcli_version }}_linux_amd64.tar.gz
       dest: /tmp
       mode: 0755
       remote_src: yes
   
-  - name: Install Github CLI version {{githubcli_version}} to /usr/local/bin
+  - name: Install Github CLI version {{ githubcli_version }} to /usr/local/bin
     become: yes
     copy:
-      src: /tmp/gh_{{githubcli_version}}_linux_amd64/bin/gh
+      src: /tmp/gh_{{ githubcli_version }}_linux_amd64/bin/gh
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
