@@ -23,6 +23,7 @@
     flux_version: '0.16.0'
     calicoctl_version: '3.19.1'
     username: seb
+    wsl_install: no
     
   tasks:
   - name: Install base packages
@@ -48,13 +49,15 @@
     ansible.builtin.apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
-
+    when: not wsl_install # Should not run on WSL
+ 
   - name: Configure Docker apt repository
     become: yes
     ansible.builtin.apt_repository:
       repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
       state: present
       filename: docker
+    when: not wsl_install # Should not run on WSL
 
   - name: Install Docker
     become: yes
@@ -64,6 +67,7 @@
       - docker-ce-cli
       - containerd.io
       state: present
+    when: not wsl_install # Should not run on WSL
 
   - name: Add user {{ username }} to docker group
     become: yes
@@ -124,6 +128,7 @@
       remote_src: yes
   
   - name: Add Hashicorp apt signing key
+    become: yes
     ansible.builtin.apt_key:
       url: https://apt.releases.hashicorp.com/gpg
       state: present

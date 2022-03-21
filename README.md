@@ -15,12 +15,16 @@ The only prerequisites are :
 
 Clone this repository.
 
-Adapt the user variable if needed (or pass it through `-e` argument).
+Adapt the user variable if needed (or pass it through `--extra-vars` argument).
 
 Run the playbook with `-K` option to supply the `sudo` password.
 
 ```bash
+# Running on standard Ubuntu
 ansible-playbook playbook-setup-ubuntudev.yml -K
+
+# Running on WSL Ubuntu
+ ansible-playbook -K playbook-setup-ubuntudev.yml --extra-vars "wsl_install=yes"
 ```
 
 ## Packages installed
