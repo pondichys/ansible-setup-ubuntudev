@@ -13,7 +13,7 @@
     packer_version: '1.8.0'
     terraform_version: '1.1.8'
     tfdocs_version: '0.16.0'
-    kubectl_version: '1.20.4'
+    kubectl_version: '1.21.9'
     kubectx_version: '0.9.3'
     kustomize_version: '4.1.2'
     kind_version: '0.11.1'
@@ -194,6 +194,8 @@
       url: https://storage.googleapis.com/kubernetes-release/release/v{{ kubectl_version }}/bin/linux/amd64/kubectl
       dest: /usr/local/bin/kubectl
       mode: 0755
+      force: yes
+    tags: kubectl  
 
   - name: Download and install kubectx version {{ kubectx_version }}
     unarchive:
@@ -231,6 +233,7 @@
       url: https://kind.sigs.k8s.io/dl/v{{ kind_version }}/kind-linux-amd64
       dest: /usr/local/bin/kind
       mode: 0755
+      force: yes
 
   - name: Download and install k3d version {{ k3d_version }}
     become: yes
@@ -238,6 +241,7 @@
       url: https://github.com/rancher/k3d/releases/download/v{{ k3d_version }}/k3d-linux-amd64
       dest: /usr/local/bin/k3d
       mode: 0755
+      force: yes
 
   - name: Download k9s version {{ k9s_version }}
     unarchive:
@@ -291,6 +295,7 @@
       url: https://github.com/projectcalico/calicoctl/releases/download/v{{ calicoctl_version }}/calicoctl
       dest: /usr/local/bin/calicoctl
       mode: 0755
+      force: yes
 
   - name: Download restic
     get_url:
