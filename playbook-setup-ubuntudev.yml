@@ -26,29 +26,49 @@
     wsl_install: no
     
   tasks:
+
+  - name: Install specific git ppa repository
+    become: yes
+    ansible.builtin.apt_repository:
+      repo: ppa:git-core/ppa
+      state: present
+      filename: git
+    tags: base
+
   - name: Install base packages
     become: yes
     apt:
-      name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2,unzip,tree,stow,pandoc]
+      name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2,unzip,tree,stow]
       state: present
+    tags: base
 
   - name: Install ShellCheck
     become: yes
     apt:
       name: shellcheck
       state: present
+    tags: base
  
   - name: Install zsh
     become: yes
     apt:
       name: zsh
       state: present
+    tags: base
 
   - name: Setup zsh as default shell for user {{ username }}
     become: yes
     user:
       name: "{{ username }}"
       shell: /usr/bin/zsh
+    tags: base
+
+  - name: Install pandoc and latex
+    become: yes
+    apt:
+      name: [pandoc,texlive-latex-base,texlive-fonts-recommended,texlive-extra-utils,texlive-latex-extra]
+      state: present
+    tags: base
 
   - name: Add Docker apt key
     become: yes
