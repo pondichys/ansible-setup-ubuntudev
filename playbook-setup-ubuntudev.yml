@@ -4,6 +4,7 @@
   connection: local
 
   vars:
+    exa_version: '0.10.0'
     ms_mirror: 'https://packages.microsoft.com'
     scw_version: '2.4.0'
     jq_version: '1.6'
@@ -68,6 +69,16 @@
     apt:
       name: [pandoc,texlive-latex-base,texlive-fonts-recommended,texlive-extra-utils,texlive-latex-extra]
       state: present
+    tags: base
+
+  - name: Install exa package
+    become: yes
+    ansible.builtin.unarchive:
+      src: https://github.com/ogham/exa/releases/download/v{{ exa_version }}/exa-linux-x86_64-v{{ exa_version }}.zip
+      dest: /usr/local
+      include: [bin/exa]
+      mode: 0755
+      remote_src: yes
     tags: base
 
   - name: Add Docker apt key
