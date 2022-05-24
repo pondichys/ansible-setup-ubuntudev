@@ -38,21 +38,21 @@
 
   - name: Install base packages
     become: yes
-    apt:
+    ansible.builtin.apt:
       name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2,unzip,tree,stow]
       state: present
     tags: base
 
   - name: Install ShellCheck
     become: yes
-    apt:
+    ansible.builtin.apt:
       name: shellcheck
       state: present
     tags: base
  
   - name: Install zsh
     become: yes
-    apt:
+    ansible.builtin.apt:
       name: zsh
       state: present
     tags: base
@@ -64,9 +64,16 @@
       shell: /usr/bin/zsh
     tags: base
 
+  - name: Install gnome-terminator
+    become: yes
+    ansible.builtin.apt:
+      name: terminator
+      state: present
+    tags: base
+
   - name: Install pandoc and latex
     become: yes
-    apt:
+    ansible.builtin.apt:
       name: [pandoc,texlive-latex-base,texlive-fonts-recommended,texlive-extra-utils,texlive-latex-extra]
       state: present
     tags: base
@@ -201,20 +208,20 @@
 
   - name: Install https://packages.microsoft.com key
     become: yes
-    apt_key:
+    ansible.builtin.apt_key:
       url: '{{ ms_mirror }}/keys/microsoft.asc'
       state: present
 
   - name: Install Azure CLI repo
     become: yes
-    apt_repository:
+    ansible.builtin.apt_repository:
       repo: 'deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli focal main'
       filename: azure-cli
       state: present
 
   - name: Install Azure CLI 
     become: yes
-    apt:
+    ansible.builtin.apt:
       name: azure-cli
       state: present
       update_cache: yes
@@ -351,14 +358,14 @@
     become: yes
     apt:
       name: powerline
-      state: present
+      state: absent
 
   - name: Configure Powerline GO in .bashrc
     blockinfile:
         path: "/home/{{ username }}/.bashrc"
         backup: yes 
         marker: "# {mark} Powerline configuration"
-        state: present
+        state: absent
         block: | 
           # Powerline configuration
           if [ -f /usr/share/powerline/bindings/bash/powerline.sh ]; then
