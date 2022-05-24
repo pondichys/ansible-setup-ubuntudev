@@ -359,6 +359,7 @@
     apt:
       name: powerline
       state: absent
+    tags: powerline
 
   - name: Configure Powerline GO in .bashrc
     blockinfile:
@@ -374,4 +375,5 @@
             POWERLINE_BASH_SELECT=1
             source /usr/share/powerline/bindings/bash/powerline.sh
           fi
+    tags: powerline
 ...
