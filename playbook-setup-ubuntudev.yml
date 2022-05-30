@@ -10,10 +10,10 @@
     jq_version: '1.6'
     yq_version: '4.23.1'
     gotask_version: '3.9.2'
-    githubcli_version: '1.13.1'
+    githubcli_version: '2.11.3'
     packer_version: '1.8.0'
-    terraform_version: '1.1.8'
     tfdocs_version: '0.16.0'
+    terramate_version: '0.1.1'
     kubectl_version: '1.21.9'
     kubectx_version: '0.9.3'
     kustomize_version: '4.1.2'
@@ -191,10 +191,10 @@
       state: present
       update_cache: yes
 
-  - name: Install Hashicorp Terraform version {{ terraform_version }}
+  - name: Install Hashicorp Terraform
     become: yes
     ansible.builtin.apt:
-      name: terraform={{ terraform_version }}
+      name: terraform
       state: present
       update_cache: yes
 
@@ -205,6 +205,17 @@
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
+
+  - name: Install Terramate version {{ terramate_version }}
+    become: yes
+    ansible.builtin.unarchive:
+      src: https://github.com/mineiros-io/terramate/releases/download/v{{ terramate_version }}/terramate_{{ terramate_version}}_linux_x86_64.tar.gz
+      dest: /usr/local/bin
+      mode: 0755
+      remote_src: yes
+    tags:
+    - base
+    - terraform
 
   - name: Install https://packages.microsoft.com key
     become: yes
