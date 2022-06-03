@@ -6,23 +6,22 @@
   vars:
     exa_version: '0.10.0'
     ms_mirror: 'https://packages.microsoft.com'
-    scw_version: '2.4.0'
+    scw_version: '2.5.1'
     jq_version: '1.6'
     yq_version: '4.23.1'
     gotask_version: '3.9.2'
     githubcli_version: '2.11.3'
-    packer_version: '1.8.0'
     tfdocs_version: '0.16.0'
     terramate_version: '0.1.1'
     kubectl_version: '1.21.9'
-    kubectx_version: '0.9.3'
-    kustomize_version: '4.1.2'
+    kubectx_version: '0.9.4'
+    kustomize_version: '4.5.5'
     kind_version: '0.11.1'
-    k3d_version: '5.1.0'
+    k3d_version: '5.4.1'
     k9s_version: '0.25.18'
-    helm_version: '3.7.1'
+    helm_version: '3.9.0'
     flux_version: '0.16.0'
-    calicoctl_version: '3.19.1'
+    calicoctl_version: '3.23.1'
     username: seb
     wsl_install: no
     
@@ -133,8 +132,8 @@
   
   - name: Download and install Scaleway CLI version {{ scw_version }}
     become: yes
-    get_url:
-      url: https://github.com/scaleway/scaleway-cli/releases/download/v{{ scw_version }}/scw-{{ scw_version }}-linux-x86_64
+    get_url: 
+      url: https://github.com/scaleway/scaleway-cli/releases/download/v{{ scw_version }}/scaleway-cli_{{ scw_version }}_linux_amd64
       dest: /usr/local/bin/scw
       mode: 0755
       
@@ -330,39 +329,44 @@
   
   - name: Download Flux CLI version {{ flux_version }}
     become: yes
-    unarchive:
+    ansible.builtin.unarchive:
       src: https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_linux_amd64.tar.gz
       dest: /tmp
       remote_src: yes
       mode: 0755
+    tags: flux
 
   - name: Copy flux binary to /usr/local/bin
     become: yes
-    copy:
+    ansible.builtin.copy:
       src: /tmp/flux
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
+    tags: flux
 
   - name: Install calicoctl version {{ calicoctl_version }}
     become: yes
-    get_url:
-      url: https://github.com/projectcalico/calicoctl/releases/download/v{{ calicoctl_version }}/calicoctl
+    ansible.builtin.get_url: 
+      url: https://github.com/projectcalico/calico/releases/download/v{{ calicoctl_version }}/calicoctl-linux-amd64
       dest: /usr/local/bin/calicoctl
       mode: 0755
       force: yes
+    tags: calico
 
   - name: Download restic
     get_url:
       url: https://github.com/restic/restic/releases/download/v0.11.0/restic_0.11.0_linux_amd64.bz2
       dest: /tmp/restic.bz2
       force: yes
+    tags: restic
   
   - name: Decompress and copy the binary to /usr/local/bin
     become: yes
     shell: bunzip2 -c /tmp/restic.bz2 > /usr/local/bin/restic
     args:
       creates: "/usr/local/bin/restic"
+    tags: restic
 
   - name: Set permissions on /usr/local/bin/restic
     become: yes
@@ -370,6 +374,7 @@
       path: /usr/local/bin/restic
       mode: 0755
       owner: root
+    tags: restic
 
   - name: Install Powerline GO
     become: yes
