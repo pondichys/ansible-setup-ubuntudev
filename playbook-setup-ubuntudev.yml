@@ -124,6 +124,12 @@
   - name: Install pre-commit with pip
     pip:
       name: pre-commit
+    tags: base
+
+  - name: Install commitizen using pip
+    ansible.builtin.pip:
+      name: commitizen
+    tags: base
   
   - name: Download and install Scaleway CLI version {{ scw_version }}
     become: yes
@@ -184,10 +190,10 @@
       state: present
       filename: hashicorp
 
-  - name: Install Hashicorp Packer version {{ packer_version }}
+  - name: Install Hashicorp Packer
     become: yes
     ansible.builtin.apt:
-      name: packer={{ packer_version }}
+      name: packer
       state: present
       update_cache: yes
 
