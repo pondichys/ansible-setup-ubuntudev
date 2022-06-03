@@ -93,6 +93,7 @@
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
     when: not wsl_install # Should not run on WSL
+    tags: docker
  
   - name: Configure Docker apt repository
     become: yes
@@ -101,6 +102,7 @@
       state: present
       filename: docker
     when: not wsl_install # Should not run on WSL
+    tags: docker
 
   - name: Install Docker
     become: yes
@@ -111,6 +113,7 @@
       - containerd.io
       state: present
     when: not wsl_install # Should not run on WSL
+    tags: docker
 
   - name: Add user {{ username }} to docker group
     become: yes
@@ -119,6 +122,7 @@
       append: yes
       groups: 
       - docker
+    tags: docker
 
   - name: Install pre-commit with pip
     pip:
@@ -143,6 +147,7 @@
       url: https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64
       dest: /usr/local/bin/jq
       mode: 0755
+    tags: base
 
   - name: Download and install yq version {{ yq_version }}
     become: yes
@@ -150,6 +155,7 @@
       url: https://github.com/mikefarah/yq/releases/download/v{{ yq_version }}/yq_linux_amd64
       dest: /usr/local/bin/yq
       mode: 0755
+    tags: base
 
 
   - name: Download and install task version {{ gotask_version }}
@@ -159,6 +165,7 @@
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
+    tags: base
 
   - name: Download Github CLI version {{ githubcli_version }}
     become: yes
@@ -181,6 +188,10 @@
     ansible.builtin.apt_key:
       url: https://apt.releases.hashicorp.com/gpg
       state: present
+    tags:
+    - hashicorp
+    - terraform
+    - packer
 
   - name: Configure Hashicorp apt repository
     become: yes
@@ -188,6 +199,10 @@
       repo: deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
       state: present
       filename: hashicorp
+    tags:
+    - hashicorp
+    - terraform
+    - packer
 
   - name: Install Hashicorp Packer
     become: yes
@@ -195,6 +210,7 @@
       name: packer
       state: present
       update_cache: yes
+    tags: packer
 
   - name: Install Hashicorp Terraform
     become: yes
@@ -202,6 +218,7 @@
       name: terraform
       state: present
       update_cache: yes
+    tags: terraform
 
   - name: Download and install terraform-docs version {{ tfdocs_version }}
     become: yes
@@ -210,11 +227,14 @@
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
+    tags:
+    - base
+    - terraform
 
   - name: Install Terramate version {{ terramate_version }}
     become: yes
     ansible.builtin.unarchive:
-      src: https://github.com/mineiros-io/terramate/releases/download/v{{ terramate_version }}/terramate_{{ terramate_version}}_linux_x86_64.tar.gz
+      src: https://github.com/mineiros-io/terramate/releases/download/v{{ terramate_version }}/terramate_{{ terramate_version }}_linux_x86_64.tar.gz
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
@@ -257,6 +277,7 @@
       dest: /tmp
       remote_src: yes
       mode: 0755
+    tags: kubectx
 
   - name: Copy kubectx binary to /usr/local/bin
     become: yes
@@ -265,6 +286,7 @@
       dest: /usr/local/bin
       mode: 0755
       remote_src: yes
+    tags: kubectx
 
   - name: Download kustomize version {{ kustomize_version }}
     unarchive:
