@@ -68,6 +68,7 @@
     ansible.builtin.apt:
       name: terminator
       state: present
+    when: not wsl_install # Should not run on WSL
     tags: base
 
   - name: Install pandoc and latex
@@ -122,6 +123,7 @@
       append: yes
       groups: 
       - docker
+    when: not wsl_install # Should not run on WSL
     tags: docker
 
   - name: Install pre-commit with pip
@@ -303,13 +305,13 @@
       mode: 0755
       remote_src: yes
 
-  - name: Download and install kind version {{ kind_version }}
-    become: yes
-    get_url:
-      url: https://kind.sigs.k8s.io/dl/v{{ kind_version }}/kind-linux-amd64
-      dest: /usr/local/bin/kind
-      mode: 0755
-      force: yes
+#  - name: Download and install kind version {{ kind_version }}
+#    become: yes
+#    get_url:
+#      url: https://kind.sigs.k8s.io/dl/v{{ kind_version }}/kind-linux-amd64
+#      dest: /usr/local/bin/kind
+#      mode: 0755
+#      force: yes
 
   - name: Download and install k3d version {{ k3d_version }}
     become: yes
