@@ -24,5 +24,5 @@ Run the playbook with `-K` option to supply the `sudo` password.
 ansible-playbook playbook-setup-ubuntudev.yml -K
 
 # Running on WSL Ubuntu
- ansible-playbook -K playbook-setup-ubuntudev.yml --extra-vars "wsl_install=yes"
+ ansible-playbook -K playbook-setup-ubuntudev.yml --extra-vars "wsl_install=true"
 ```
