@@ -10,7 +10,7 @@
     jq_version: '1.6'
     yq_version: '4.23.1'
     gotask_version: '3.9.2'
-    githubcli_version: '2.11.3'
+    githubcli_version: '2.14.2'
     tfdocs_version: '0.16.0'
     terramate_version: '0.1.1'
     kubectl_version: '1.21.9'
@@ -24,12 +24,12 @@
     calicoctl_version: '3.23.1'
     starship_version: '1.8.0'
     username: seb
-    wsl_install: no
-    
+    wsl_install: false
+  
   tasks:
 
   - name: Install specific git ppa repository
-    become: yes
+    become: true
     ansible.builtin.apt_repository:
       repo: ppa:git-core/ppa
       state: present
@@ -37,21 +37,21 @@
     tags: base
 
   - name: Install base packages
-    become: yes
+    become: true
     ansible.builtin.apt:
-      name: [git,curl,wget,python3-pip,python3-venv,apt-transport-https,ca-certificates,software-properties-common,bzip2,unzip,tree,stow]
+      name: [git, curl, wget, python3-pip, python3-venv, apt-transport-https, ca-certificates, software-properties-common, bzip2, unzip, tree, stow]
       state: present
-    tags: base
+    tags: base 
 
   - name: Install ShellCheck
-    become: yes
+    become: true
     ansible.builtin.apt:
       name: shellcheck
       state: present
     tags: base
  
   - name: Install zsh
-    become: yes
+    become: true
     ansible.builtin.apt:
       name: zsh
       state: present
@@ -60,8 +60,8 @@
     - zsh
 
   - name: Setup zsh as default shell for user {{ username }}
-    become: yes
-    user:
+    become: true
+    ansible.builtin.user:
       name: "{{ username }}"
       shell: /usr/bin/zsh
     tags: 
@@ -94,7 +94,7 @@
     - zsh
 
   - name: Install gnome-terminator
-    become: yes
+    become: true
     ansible.builtin.apt:
       name: terminator
       state: present
@@ -102,41 +102,59 @@
     tags: base
 
   - name: Install pandoc and latex
-    become: yes
+    become: true
     ansible.builtin.apt:
       name: [pandoc,texlive-latex-base,texlive-fonts-recommended,texlive-extra-utils,texlive-latex-extra]
       state: present
     tags: base
 
   - name: Install exa package
-    become: yes
+    become: true
     ansible.builtin.unarchive:
       src: https://github.com/ogham/exa/releases/download/v{{ exa_version }}/exa-linux-x86_64-v{{ exa_version }}.zip
       dest: /usr/local
       include: [bin/exa]
       mode: 0755
-      remote_src: yes
+      remote_src: true
     tags: base
 
-  - name: Add Docker apt key
-    become: yes
+  - name: Add Docker apt key - old method
+    become: true
     ansible.builtin.apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
-    when: not wsl_install # Should not run on WSL
+    when: not wsl_install and ansible_facts['distribution_major_version'] | int < 22 # Should not run on WSL or Ubuntu >= 22
     tags: docker
  
   - name: Configure Docker apt repository
-    become: yes
+    become: true
     ansible.builtin.apt_repository:
       repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
       state: present
       filename: docker
-    when: not wsl_install # Should not run on WSL
+    when: not wsl_install and ansible_facts['distribution_major_version'] | int < 22 # Should not run on WSL or Ubuntu >= 22
+    tags: docker
+
+  - name: Add Docker apt key - new method
+    become: true
+    ansible.builtin.get_url:
+      url: https://download.docker.com/linux/ubuntu/gpg
+      dest: /etc/apt/keyrings/docker.asc
+      mode: 0644
+      force: true
+    when: not wsl_install and ansible_facts['distribution_major_version'] | int >= 22 # Should not run on WSL and Ubuntu > 22
+
+  - name: Configure Docker apt repository
+    become: true
+    ansible.builtin.apt_repository:
+      repo: deb [signed-by=/etc/apt/keyrings/docker.asc, arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+      state: present
+      filename: docker
+    when: not wsl_install and ansible_facts['distribution_major_version'] | int >= 22 # Should not run on WSL or Ubuntu >= 22
     tags: docker
 
   - name: Install Docker
-    become: yes
+    become: true
     ansible.builtin.apt:
       name: 
       - docker-ce
@@ -147,17 +165,17 @@
     tags: docker
 
   - name: Add user {{ username }} to docker group
-    become: yes
-    user:
+    become: true
+    ansible.builtin.user:
       name: "{{ username }}"
-      append: yes
+      append: true
       groups: 
       - docker
     when: not wsl_install # Should not run on WSL
     tags: docker
 
   - name: Install pre-commit with pip
-    pip:
+    ansible.builtin.pip:
       name: pre-commit
     tags: base
 
@@ -167,23 +185,23 @@
     tags: base
   
   - name: Download and install Scaleway CLI version {{ scw_version }}
-    become: yes
-    get_url: 
+    become: true
+    ansible.builtin.get_url: 
       url: https://github.com/scaleway/scaleway-cli/releases/download/v{{ scw_version }}/scaleway-cli_{{ scw_version }}_linux_amd64
       dest: /usr/local/bin/scw
       mode: 0755
       
   - name: Download and install jq version {{ jq_version }}
-    become: yes
-    get_url:
+    become: true
+    ansible.builtin.get_url:
       url: https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64
       dest: /usr/local/bin/jq
       mode: 0755
     tags: base
 
   - name: Download and install yq version {{ yq_version }}
-    become: yes
-    get_url:
+    become: true
+    ansible.builtin.get_url:
       url: https://github.com/mikefarah/yq/releases/download/v{{ yq_version }}/yq_linux_amd64
       dest: /usr/local/bin/yq
       mode: 0755
@@ -191,256 +209,303 @@
 
 
   - name: Download and install task version {{ gotask_version }}
-    become: yes
-    unarchive:
+    become: true
+    ansible.builtin.unarchive:
       src: https://github.com/go-task/task/releases/download/v{{ gotask_version }}/task_linux_amd64.tar.gz
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
     tags: base
 
   - name: Download Github CLI version {{ githubcli_version }}
-    become: yes
-    unarchive:
+    become: true
+    ansible.builtin.unarchive:
       src: https://github.com/cli/cli/releases/download/v{{ githubcli_version }}/gh_{{ githubcli_version }}_linux_amd64.tar.gz
       dest: /tmp
       mode: 0755
-      remote_src: yes
+      remote_src: true
   
   - name: Install Github CLI version {{ githubcli_version }} to /usr/local/bin
-    become: yes
-    copy:
+    become: true
+    ansible.builtin.copy:
       src: /tmp/gh_{{ githubcli_version }}_linux_amd64/bin/gh
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
   
-  - name: Add Hashicorp apt signing key
-    become: yes
+  - name: Add Hashicorp apt signing key - old method
+    become: true
     ansible.builtin.apt_key:
       url: https://apt.releases.hashicorp.com/gpg
       state: present
+    when: ansible_facts['distribution_major_version'] | int < 22
     tags:
     - hashicorp
     - terraform
     - packer
 
-  - name: Configure Hashicorp apt repository
-    become: yes
+  - name: Configure Hashicorp apt repository - old method
+    become: true
     ansible.builtin.apt_repository:
       repo: deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
       state: present
       filename: hashicorp
+    when: ansible_facts['distribution_major_version'] | int < 22
+    tags:
+    - hashicorp
+    - terraform
+    - packer
+  
+  - name: Add Hashicorp apt signing key - new method
+    become: true
+    ansible.builtin.get_url:
+      url: https://apt.releases.hashicorp.com/gpg
+      dest: /etc/apt/keyrings/hashicorp.asc
+      mode: 0644
+      force: true
+    when: ansible_facts['distribution_major_version'] | int >= 22
+    tags:
+    - hashicorp
+    - terraform
+    - packer
+
+  - name: Configure Hashicorp apt repository - new method
+    become: true
+    ansible.builtin.apt_repository:
+      repo: deb [signed-by=/etc/apt/keyrings/hashicorp.asc, arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
+      state: present
+      filename: hashicorp
+    when: ansible_facts['distribution_major_version'] | int >= 22
     tags:
     - hashicorp
     - terraform
     - packer
 
   - name: Install Hashicorp Packer
-    become: yes
+    become: true
     ansible.builtin.apt:
       name: packer
       state: present
-      update_cache: yes
+      update_cache: true
     tags: packer
 
   - name: Install Hashicorp Terraform
-    become: yes
+    become: true
     ansible.builtin.apt:
       name: terraform
       state: present
-      update_cache: yes
+      update_cache: true
     tags: terraform
 
   - name: Download and install terraform-docs version {{ tfdocs_version }}
-    become: yes
-    unarchive:
+    become: true
+    ansible.builtin.unarchive:
       src: https://github.com/terraform-docs/terraform-docs/releases/download/v{{ tfdocs_version }}/terraform-docs-v{{ tfdocs_version }}-linux-amd64.tar.gz
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
     tags:
     - base
     - terraform
 
   - name: Install Terramate version {{ terramate_version }}
-    become: yes
+    become: true
     ansible.builtin.unarchive:
       src: https://github.com/mineiros-io/terramate/releases/download/v{{ terramate_version }}/terramate_{{ terramate_version }}_linux_x86_64.tar.gz
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
     tags:
     - base
     - terraform
-
-  - name: Install https://packages.microsoft.com key
-    become: yes
+    
+  - name: Install https://packages.microsoft.com key - old method
+    become: true
     ansible.builtin.apt_key:
       url: '{{ ms_mirror }}/keys/microsoft.asc'
       state: present
+    when: ansible_facts['distribution_major_version'] | int < 22
 
-  - name: Install Azure CLI repo
-    become: yes
+  - name: Install Azure CLI repo - old method
+    become: true
     ansible.builtin.apt_repository:
       repo: 'deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli {{ ansible_distribution_release }} main'
       filename: azure-cli
       state: present
+    when: ansible_facts['distribution_major_version'] | int < 22
+
+  - name: Install https://packages.microsoft.com key - new method
+    become: true
+    ansible.builtin.get_url:
+      url: '{{ ms_mirror }}/keys/microsoft.asc'
+      dest: /etc/apt/keyrings/microsoft.asc
+      mode: 0644
+      force: true
+    when: ansible_facts['distribution_major_version'] | int >= 22
+
+  - name: Install Azure CLI repo - new method
+    become: true
+    ansible.builtin.apt_repository:
+      repo: 'deb [signed-by=/etc/apt/keyrings/microsoft.asc, arch=amd64] https://packages.microsoft.com/repos/azure-cli {{ ansible_distribution_release }} main'
+      filename: azure-cli
+      state: present
+    when: ansible_facts['distribution_major_version'] | int >= 22
 
   - name: Install Azure CLI 
-    become: yes
+    become: true
     ansible.builtin.apt:
       name: azure-cli
       state: present
-      update_cache: yes
+      update_cache: true
 
   - name: Download and install kubectl version {{ kubectl_version }}
-    become: yes
-    get_url:
+    become: true
+    ansible.builtin.get_url:
       url: https://storage.googleapis.com/kubernetes-release/release/v{{ kubectl_version }}/bin/linux/amd64/kubectl
       dest: /usr/local/bin/kubectl
       mode: 0755
-      force: yes
+      force: true
     tags: kubectl  
 
   - name: Download and install kubectx version {{ kubectx_version }}
-    unarchive:
+    ansible.builtin.unarchive:
       src: https://github.com/ahmetb/kubectx/releases/download/v{{ kubectx_version }}/kubectx_v{{ kubectx_version }}_linux_x86_64.tar.gz
       dest: /tmp
-      remote_src: yes
+      remote_src: true
       mode: 0755
     tags: kubectx
 
   - name: Copy kubectx binary to /usr/local/bin
-    become: yes
-    copy:
+    become: true
+    ansible.builtin.copy:
       src: /tmp/kubectx
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
     tags: kubectx
 
   - name: Download kustomize version {{ kustomize_version }}
-    unarchive:
+    ansible.builtin.unarchive:
       src: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv{{ kustomize_version }}/kustomize_v{{ kustomize_version }}_linux_amd64.tar.gz
       dest: /tmp
-      remote_src: yes
+      remote_src: true
       mode: 0755
 
   - name: Copy kustomize binary to /usr/local/bin
-    become: yes
-    copy:
+    become: true
+    ansible.builtin.copy:
       src: /tmp/kustomize
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
 
 #  - name: Download and install kind version {{ kind_version }}
-#    become: yes
+#    become: true
 #    get_url:
 #      url: https://kind.sigs.k8s.io/dl/v{{ kind_version }}/kind-linux-amd64
 #      dest: /usr/local/bin/kind
 #      mode: 0755
-#      force: yes
+#      force: true
 
   - name: Download and install k3d version {{ k3d_version }}
-    become: yes
-    get_url:
+    become: true
+    ansible.builtin.get_url:
       url: https://github.com/rancher/k3d/releases/download/v{{ k3d_version }}/k3d-linux-amd64
       dest: /usr/local/bin/k3d
       mode: 0755
-      force: yes
+      force: true
 
   - name: Download k9s version {{ k9s_version }}
-    unarchive:
+    ansible.builtin.unarchive:
       src: https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_x86_64.tar.gz
       dest: /tmp
-      remote_src: yes
+      remote_src: true
       mode: 0755
 
   - name: Copy k9s binary to /usr/local/bin
-    become: yes
-    copy:
+    become: true
+    ansible.builtin.copy:
       src: /tmp/k9s
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
 
   - name: Download Helm
-    unarchive:
+    ansible.builtin.unarchive:
       src: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
       dest: /tmp
-      remote_src: yes
+      remote_src: true
       mode: 0755
 
   - name: Copy Helm binary to /usr/local/bin
-    become: yes
-    copy:
+    become: true
+    ansible.builtin.copy:
       src: /tmp/linux-amd64/helm
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
   
   - name: Download Flux CLI version {{ flux_version }}
-    become: yes
+    become: true
     ansible.builtin.unarchive:
       src: https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_linux_amd64.tar.gz
       dest: /tmp
-      remote_src: yes
+      remote_src: true
       mode: 0755
     tags: flux
 
   - name: Copy flux binary to /usr/local/bin
-    become: yes
+    become: true
     ansible.builtin.copy:
       src: /tmp/flux
       dest: /usr/local/bin
       mode: 0755
-      remote_src: yes
+      remote_src: true
     tags: flux
 
   - name: Install calicoctl version {{ calicoctl_version }}
-    become: yes
+    become: true
     ansible.builtin.get_url: 
       url: https://github.com/projectcalico/calico/releases/download/v{{ calicoctl_version }}/calicoctl-linux-amd64
       dest: /usr/local/bin/calicoctl
       mode: 0755
-      force: yes
+      force: true
     tags: calico
 
   - name: Download restic
-    get_url:
+    ansible.builtin.get_url:
       url: https://github.com/restic/restic/releases/download/v0.11.0/restic_0.11.0_linux_amd64.bz2
       dest: /tmp/restic.bz2
-      force: yes
+      mode: 0755
+      force: true
     tags: restic
   
   - name: Decompress and copy the binary to /usr/local/bin
-    become: yes
-    shell: bunzip2 -c /tmp/restic.bz2 > /usr/local/bin/restic
+    become: true
+    ansible.builtin.shell: bunzip2 -c /tmp/restic.bz2 > /usr/local/bin/restic
     args:
       creates: "/usr/local/bin/restic"
     tags: restic
 
   - name: Set permissions on /usr/local/bin/restic
-    become: yes
-    file:
+    become: true
+    ansible.builtin.file:
       path: /usr/local/bin/restic
       mode: 0755
       owner: root
     tags: restic
 
   - name: Install Powerline GO
-    become: yes
-    apt:
+    become: true
+    ansible.builtin.apt:
       name: powerline
       state: absent
     tags: powerline
 
   - name: Configure Powerline GO in .bashrc
-    blockinfile:
+    ansible.builtin.blockinfile:
         path: "/home/{{ username }}/.bashrc"
-        backup: yes 
+        backup: true
         marker: "# {mark} Powerline configuration"
         state: absent
         block: | 
@@ -454,11 +519,11 @@
     tags: powerline
 
   - name: Download and install starship.rs
-    become: yes
+    become: true
     ansible.builtin.unarchive:
-      src: https://github.com/starship/starship/releases/download/v{{ starship_version}}/starship-x86_64-unknown-linux-gnu.tar.gz
+      src: https://github.com/starship/starship/releases/download/v{{ starship_version }}/starship-x86_64-unknown-linux-gnu.tar.gz
       dest: /usr/local/bin
-      remote_src: yes
+      remote_src: true
       mode: 0755
     tags:
     - base
