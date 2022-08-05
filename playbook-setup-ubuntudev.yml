@@ -18,11 +18,12 @@
     kustomize_version: '4.5.5'
     kind_version: '0.11.1'
     k3d_version: '5.4.1'
-    k9s_version: '0.25.18'
+    k9s_version: '0.26.3'
     helm_version: '3.9.0'
     flux_version: '0.16.0'
     calicoctl_version: '3.23.1'
     starship_version: '1.8.0'
+    restic_version: '0.13.1'
     username: seb
     wsl_install: false
   
@@ -474,7 +475,7 @@
 
   - name: Download restic
     ansible.builtin.get_url:
-      url: https://github.com/restic/restic/releases/download/v0.11.0/restic_0.11.0_linux_amd64.bz2
+      url: https://github.com/restic/restic/releases/download/v{{ restic_version }}/restic_{{ restic_version }}_linux_amd64.bz2
       dest: /tmp/restic.bz2
       mode: 0755
       force: true
