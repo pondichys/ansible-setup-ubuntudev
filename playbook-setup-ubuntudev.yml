@@ -4,6 +4,7 @@
   connection: local
 
   vars:
+    bat_version: '0.22.1'
     exa_version: '0.10.0'
     ms_mirror: 'https://packages.microsoft.com'
     scw_version: '2.5.6'
@@ -119,6 +120,15 @@
       mode: 0755
       remote_src: true
     tags: base
+
+  - name: Install bat package (next generation cat)
+    become: true
+    ansible.builtin.apt:
+      deb: https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat_{{ bat_version  }}_amd64.deb
+    tags:
+    - base
+    - bat
+
 
   - name: Add Docker apt key - old method
     become: true
