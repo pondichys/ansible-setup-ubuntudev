@@ -7,27 +7,17 @@
     bat_version: '0.22.1'
     exa_version: '0.10.0'
     ms_mirror: 'https://packages.microsoft.com'
-    scw_version: '2.5.6'
     jq_version: '1.6'
     yq_version: '4.23.1'
-    gotask_version: '3.9.2'
-    githubcli_version: '2.18.1'
     tfdocs_version: '0.16.0'
-    # terramate_version: '0.1.1'
     kubectl_version: '1.21.9'
     kubectx_version: '0.9.4'
     kustomize_version: '4.5.5'
-    kind_version: '0.11.1'
-    k3d_version: '5.4.1'
     k9s_version: '0.26.3'
     helm_version: '3.9.0'
-    flux_version: '0.16.0'
-    # calicoctl_version: '3.23.1'
     starship_version: '1.11.0'
     restic_version: '0.13.1'
-    hugo_version: '0.104.0'
     username: seb
-    wsl_install: false
   
   tasks:
 
@@ -70,14 +60,6 @@
     tags: 
     - base
     - zsh
-
-  - name: Install gnome-terminator
-    become: true
-    ansible.builtin.apt:
-      name: terminator
-      state: present
-    when: not wsl_install # Should not run on WSL
-    tags: base
 
   - name: Install pandoc and latex
     become: true
@@ -169,16 +151,6 @@
     ansible.builtin.pip:
       name: commitizen
     tags: base
-  
-  - name: Download and install Scaleway CLI version {{ scw_version }}
-    become: true
-    ansible.builtin.get_url: 
-      url: https://github.com/scaleway/scaleway-cli/releases/download/v{{ scw_version }}/scaleway-cli_{{ scw_version }}_linux_amd64
-      dest: /usr/local/bin/scw
-      mode: 0755
-    tags:
-    - base
-    - scw
       
   - name: Download and install jq version {{ jq_version }}
     become: true
@@ -195,34 +167,6 @@
       dest: /usr/local/bin/yq
       mode: 0755
     tags: base
-
-
-  - name: Download and install task version {{ gotask_version }}
-    become: true
-    ansible.builtin.unarchive:
-      src: https://github.com/go-task/task/releases/download/v{{ gotask_version }}/task_linux_amd64.tar.gz
-      dest: /usr/local/bin
-      mode: 0755
-      remote_src: true
-    tags: base
-
-  - name: Download Github CLI version {{ githubcli_version }}
-    become: true
-    ansible.builtin.unarchive:
-      src: https://github.com/cli/cli/releases/download/v{{ githubcli_version }}/gh_{{ githubcli_version }}_linux_amd64.tar.gz
-      dest: /tmp
-      mode: 0755
-      remote_src: true
-    tags: github
-  
-  - name: Install Github CLI version {{ githubcli_version }} to /usr/local/bin
-    become: true
-    ansible.builtin.copy:
-      src: /tmp/gh_{{ githubcli_version }}_linux_amd64/bin/gh
-      dest: /usr/local/bin
-      mode: 0755
-      remote_src: true
-    tags: github
   
   - name: Add Hashicorp apt signing key - old method
     become: true
@@ -379,22 +323,6 @@
       mode: 0755
       remote_src: true
 
-#  - name: Download and install kind version {{ kind_version }}
-#    become: true
-#    get_url:
-#      url: https://kind.sigs.k8s.io/dl/v{{ kind_version }}/kind-linux-amd64
-#      dest: /usr/local/bin/kind
-#      mode: 0755
-#      force: true
-
-  - name: Download and install k3d version {{ k3d_version }}
-    become: true
-    ansible.builtin.get_url:
-      url: https://github.com/rancher/k3d/releases/download/v{{ k3d_version }}/k3d-linux-amd64
-      dest: /usr/local/bin/k3d
-      mode: 0755
-      force: true
-
   - name: Download k9s version {{ k9s_version }}
     ansible.builtin.unarchive:
       src: https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_x86_64.tar.gz
@@ -424,24 +352,6 @@
       dest: /usr/local/bin
       mode: 0755
       remote_src: true
-  
-  - name: Download Flux CLI version {{ flux_version }}
-    become: true
-    ansible.builtin.unarchive:
-      src: https://github.com/fluxcd/flux2/releases/download/v{{ flux_version }}/flux_{{ flux_version }}_linux_amd64.tar.gz
-      dest: /tmp
-      remote_src: true
-      mode: 0755
-    tags: flux
-
-  - name: Copy flux binary to /usr/local/bin
-    become: true
-    ansible.builtin.copy:
-      src: /tmp/flux
-      dest: /usr/local/bin
-      mode: 0755
-      remote_src: true
-    tags: flux
 
   - name: Download restic
     ansible.builtin.get_url:
@@ -478,11 +388,4 @@
     - base
     - starship
     - zsh
-
-  - name: Download and install hugo extended from Github .deb package
-    become: true
-    ansible.builtin.apt:
-      deb:  https://github.com/gohugoio/hugo/releases/download/v{{ hugo_version }}/hugo_extended_{{ hugo_version }}_linux-amd64.deb
-    tags:
-    - hugo
 ...
