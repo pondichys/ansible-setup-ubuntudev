@@ -1,26 +1,14 @@
 ---
 # ansible playbook to setup a ubuntu development box
-- hosts: 127.0.0.1
-  connection: local
+- hosts: 192.168.122.73
+  #- hosts: 127.0.0.1
+  #connection: local
 
   vars:
-    bat_version: '0.22.1'
-    exa_version: '0.10.0'
-    ms_mirror: 'https://packages.microsoft.com'
-    jq_version: '1.6'
-    yq_version: '4.23.1'
-    tfdocs_version: '0.16.0'
-    kubectl_version: '1.21.9'
-    kubectx_version: '0.9.4'
-    kustomize_version: '4.5.5'
-    k9s_version: '0.26.3'
-    helm_version: '3.9.0'
     starship_version: '1.11.0'
-    restic_version: '0.13.1'
-    username: seb
+    username: "{{ ansible_user_id }}"
   
   tasks:
-
   - name: Install specific git ppa repository
     become: true
     ansible.builtin.apt_repository:
@@ -36,13 +24,6 @@
       state: present
     tags: base 
 
-  - name: Install ShellCheck
-    become: true
-    ansible.builtin.apt:
-      name: shellcheck
-      state: present
-    tags: base
- 
   - name: Install zsh
     become: true
     ansible.builtin.apt:
@@ -61,48 +42,6 @@
     - base
     - zsh
 
-  - name: Install pandoc and latex
-    become: true
-    ansible.builtin.apt:
-      name: [pandoc,texlive-latex-base,texlive-fonts-recommended,texlive-extra-utils,texlive-latex-extra]
-      state: present
-    tags: base
-
-  - name: Install exa package
-    become: true
-    ansible.builtin.unarchive:
-      src: https://github.com/ogham/exa/releases/download/v{{ exa_version }}/exa-linux-x86_64-v{{ exa_version }}.zip
-      dest: /usr/local
-      include: [bin/exa]
-      mode: 0755
-      remote_src: true
-    tags: base
-
-  - name: Install bat package (next generation cat)
-    become: true
-    ansible.builtin.apt:
-      deb: https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat_{{ bat_version  }}_amd64.deb
-    tags:
-    - base
-    - bat
-
-  - name: Add Docker apt key - old method
-    become: true
-    ansible.builtin.apt_key:
-      url: https://download.docker.com/linux/ubuntu/gpg
-      state: present
-    when: not wsl_install and ansible_facts['distribution_major_version'] | int < 22 # Should not run on WSL or Ubuntu >= 22
-    tags: docker
- 
-  - name: Configure Docker apt repository
-    become: true
-    ansible.builtin.apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
-      state: present
-      filename: docker
-    when: not wsl_install and ansible_facts['distribution_major_version'] | int < 22 # Should not run on WSL or Ubuntu >= 22
-    tags: docker
-
   - name: Add Docker apt key - new method
     become: true
     ansible.builtin.get_url:
@@ -110,7 +49,7 @@
       dest: /etc/apt/keyrings/docker.asc
       mode: 0644
       force: true
-    when: not wsl_install and ansible_facts['distribution_major_version'] | int >= 22 # Should not run on WSL and Ubuntu > 22
+    when: ansible_facts['distribution_major_version'] | int >= 22 # Should not run on WSL and Ubuntu > 22
 
   - name: Configure Docker apt repository
     become: true
@@ -118,7 +57,7 @@
       repo: deb [signed-by=/etc/apt/keyrings/docker.asc, arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
       state: present
       filename: docker
-    when: not wsl_install and ansible_facts['distribution_major_version'] | int >= 22 # Should not run on WSL or Ubuntu >= 22
+    when: ansible_facts['distribution_major_version'] | int >= 22 # Should not run on WSL or Ubuntu >= 22
     tags: docker
 
   - name: Install Docker
@@ -129,7 +68,6 @@
       - docker-ce-cli
       - containerd.io
       state: present
-    when: not wsl_install # Should not run on WSL
     tags: docker
 
   - name: Add user {{ username }} to docker group
@@ -139,242 +77,7 @@
       append: true
       groups: 
       - docker
-    when: not wsl_install # Should not run on WSL
     tags: docker
-
-  - name: Install pre-commit with pip
-    ansible.builtin.pip:
-      name: pre-commit
-    tags: base
-
-  - name: Install commitizen using pip
-    ansible.builtin.pip:
-      name: commitizen
-    tags: base
-      
-  - name: Download and install jq version {{ jq_version }}
-    become: true
-    ansible.builtin.get_url:
-      url: https://github.com/stedolan/jq/releases/download/jq-{{ jq_version }}/jq-linux64
-      dest: /usr/local/bin/jq
-      mode: 0755
-    tags: base
-
-  - name: Download and install yq version {{ yq_version }}
-    become: true
-    ansible.builtin.get_url:
-      url: https://github.com/mikefarah/yq/releases/download/v{{ yq_version }}/yq_linux_amd64
-      dest: /usr/local/bin/yq
-      mode: 0755
-    tags: base
-  
-  - name: Add Hashicorp apt signing key - old method
-    become: true
-    ansible.builtin.apt_key:
-      url: https://apt.releases.hashicorp.com/gpg
-      state: present
-    when: ansible_facts['distribution_major_version'] | int < 22
-    tags:
-    - hashicorp
-    - terraform
-    - packer
-
-  - name: Configure Hashicorp apt repository - old method
-    become: true
-    ansible.builtin.apt_repository:
-      repo: deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
-      state: present
-      filename: hashicorp
-    when: ansible_facts['distribution_major_version'] | int < 22
-    tags:
-    - hashicorp
-    - terraform
-    - packer
-  
-  - name: Add Hashicorp apt signing key - new method
-    become: true
-    ansible.builtin.get_url:
-      url: https://apt.releases.hashicorp.com/gpg
-      dest: /etc/apt/keyrings/hashicorp.asc
-      mode: 0644
-      force: true
-    when: ansible_facts['distribution_major_version'] | int >= 22
-    tags:
-    - hashicorp
-    - terraform
-    - packer
-
-  - name: Configure Hashicorp apt repository - new method
-    become: true
-    ansible.builtin.apt_repository:
-      repo: deb [signed-by=/etc/apt/keyrings/hashicorp.asc, arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main
-      state: present
-      filename: hashicorp
-    when: ansible_facts['distribution_major_version'] | int >= 22
-    tags:
-    - hashicorp
-    - terraform
-    - packer
-
-  - name: Install Hashicorp Packer
-    become: true
-    ansible.builtin.apt:
-      name: packer
-      state: present
-      update_cache: true
-    tags: packer
-
-  - name: Install Hashicorp Terraform
-    become: true
-    ansible.builtin.apt:
-      name: terraform
-      state: present
-      update_cache: true
-    tags: terraform
-
-  - name: Download and install terraform-docs version {{ tfdocs_version }}
-    become: true
-    ansible.builtin.unarchive:
-      src: https://github.com/terraform-docs/terraform-docs/releases/download/v{{ tfdocs_version }}/terraform-docs-v{{ tfdocs_version }}-linux-amd64.tar.gz
-      dest: /usr/local/bin
-      mode: 0755
-      remote_src: true
-    tags:
-    - base
-    - terraform
-
-  - name: Install https://packages.microsoft.com key - old method
-    become: true
-    ansible.builtin.apt_key:
-      url: '{{ ms_mirror }}/keys/microsoft.asc'
-      state: present
-    when: ansible_facts['distribution_major_version'] | int < 22
-
-  - name: Install Azure CLI repo - old method
-    become: true
-    ansible.builtin.apt_repository:
-      repo: 'deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli {{ ansible_distribution_release }} main'
-      filename: azure-cli
-      state: present
-    when: ansible_facts['distribution_major_version'] | int < 22
-
-  - name: Install https://packages.microsoft.com key - new method
-    become: true
-    ansible.builtin.get_url:
-      url: '{{ ms_mirror }}/keys/microsoft.asc'
-      dest: /etc/apt/keyrings/microsoft.asc
-      mode: 0644
-      force: true
-    when: ansible_facts['distribution_major_version'] | int >= 22
-
-  - name: Install Azure CLI repo - new method
-    become: true
-    ansible.builtin.apt_repository:
-      repo: 'deb [signed-by=/etc/apt/keyrings/microsoft.asc, arch=amd64] https://packages.microsoft.com/repos/azure-cli {{ ansible_distribution_release }} main'
-      filename: azure-cli
-      state: present
-    when: ansible_facts['distribution_major_version'] | int >= 22
-
-  - name: Install Azure CLI 
-    become: true
-    ansible.builtin.apt:
-      name: azure-cli
-      state: present
-      update_cache: true
-
-  - name: Download and install kubectl version {{ kubectl_version }}
-    become: true
-    ansible.builtin.get_url:
-      url: https://storage.googleapis.com/kubernetes-release/release/v{{ kubectl_version }}/bin/linux/amd64/kubectl
-      dest: /usr/local/bin/kubectl
-      mode: 0755
-      force: true
-    tags: kubectl  
-
-  - name: Download and install kubectx version {{ kubectx_version }}
-    ansible.builtin.unarchive:
-      src: https://github.com/ahmetb/kubectx/releases/download/v{{ kubectx_version }}/kubectx_v{{ kubectx_version }}_linux_x86_64.tar.gz
-      dest: /tmp
-      remote_src: true
-      mode: 0755
-    tags: kubectx
-
-  - name: Copy kubectx binary to /usr/local/bin
-    become: true
-    ansible.builtin.copy:
-      src: /tmp/kubectx
-      dest: /usr/local/bin
-      mode: 0755
-      remote_src: true
-    tags: kubectx
-
-  - name: Download kustomize version {{ kustomize_version }}
-    ansible.builtin.unarchive:
-      src: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv{{ kustomize_version }}/kustomize_v{{ kustomize_version }}_linux_amd64.tar.gz
-      dest: /tmp
-      remote_src: true
-      mode: 0755
-
-  - name: Copy kustomize binary to /usr/local/bin
-    become: true
-    ansible.builtin.copy:
-      src: /tmp/kustomize
-      dest: /usr/local/bin
-      mode: 0755
-      remote_src: true
-
-  - name: Download k9s version {{ k9s_version }}
-    ansible.builtin.unarchive:
-      src: https://github.com/derailed/k9s/releases/download/v{{ k9s_version }}/k9s_Linux_x86_64.tar.gz
-      dest: /tmp
-      remote_src: true
-      mode: 0755
-
-  - name: Copy k9s binary to /usr/local/bin
-    become: true
-    ansible.builtin.copy:
-      src: /tmp/k9s
-      dest: /usr/local/bin
-      mode: 0755
-      remote_src: true
-
-  - name: Download Helm
-    ansible.builtin.unarchive:
-      src: https://get.helm.sh/helm-v{{ helm_version }}-linux-amd64.tar.gz
-      dest: /tmp
-      remote_src: true
-      mode: 0755
-
-  - name: Copy Helm binary to /usr/local/bin
-    become: true
-    ansible.builtin.copy:
-      src: /tmp/linux-amd64/helm
-      dest: /usr/local/bin
-      mode: 0755
-      remote_src: true
-
-  - name: Download restic
-    ansible.builtin.get_url:
-      url: https://github.com/restic/restic/releases/download/v{{ restic_version }}/restic_{{ restic_version }}_linux_amd64.bz2
-      dest: /tmp/restic.bz2
-      mode: 0755
-      force: true
-    tags: restic
-  
-  - name: Decompress and copy the binary to /usr/local/bin
-    become: true
-    ansible.builtin.shell: bunzip2 -c /tmp/restic.bz2 > /usr/local/bin/restic
-    args:
-      creates: "/usr/local/bin/restic"
-    tags: restic
-
-  - name: Set permissions on /usr/local/bin/restic
-    become: true
-    ansible.builtin.file:
-      path: /usr/local/bin/restic
-      mode: 0755
-      owner: root
-    tags: restic
 
 
   - name: Download and install starship.rs
@@ -388,4 +91,23 @@
     - base
     - starship
     - zsh
+
+  - name: git checkout dotfiles
+    ansible.builtin.git:
+      repo: 'https://github.com/pondichys/.dotfiles.git'
+      dest: "/home/{{ username }}/.dotfiles"
+    tags:
+    - dotfiles
+  - name: set dotfiles
+    ansible.builtin.shell:
+      chdir: "/home/{{ username}}/.dotfiles"
+      cmd: "for DOT in zsh starship;do stow $DOT; done"
+    tags:
+    - dotfiles
+
+  - name: install latest distrobox
+    become: true
+    ansible.builtin.shell:
+      cmd: "curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh"
+
 ...
