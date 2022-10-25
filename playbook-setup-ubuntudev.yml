@@ -19,7 +19,9 @@
     kustomize_version: '4.5.5'
     k9s_version: '0.26.3'
     helm_version: '3.9.0'
-    dotfiles_repo: 'https://github.com/pondichys/.dotfiles.git'
+    dotfiles_repo: 'https://github.com/elmomk/dotfiles.git'
+    terraform_lsp: '0.0.12'
+    terraform_ls: '0.29.3'
   
   tasks:
   - name: Setup base
@@ -168,7 +170,7 @@
     - name: set dotfiles
       ansible.builtin.shell:
         chdir: "/home/{{ username}}/.dotfiles"
-        cmd: "for DOT in zsh starship;do stow $DOT; done"
+        cmd: "for DOT in zsh starship nvim regolith2_i3;do stow $DOT; done"
       tags:
       - dotfiles
 
@@ -205,6 +207,8 @@
     - keybase
 
   - name: Setup neovim
+    tags:
+    - neovim 
     become: true
     block:
     - name: add key
@@ -219,7 +223,42 @@
 
     - name: install nvim
       ansible.builtin.apt:
-        name: neovim
+        name: 
+          - neovim
+          - fd-find
+          - ripgrep
         state: latest
+
+    - name: Download and install terraform lsp
+      ansible.builtin.unarchive:
+        src: "https://github.com/juliosueiras/terraform-lsp/releases/download/v{{ terraform_lsp }}/terraform-lsp_{{ terraform_lsp }}_linux_amd64.tar.gz"
+        dest: /usr/local/bin
+        remote_src: true
+        mode: 0755
+
+    - name: Download and install terraform lsp
+      ansible.builtin.unarchive:
+        src: "https://releases.hashicorp.com/terraform-ls/{{ terraform_ls }}/terraform-ls_{{ terraform_ls }}_linux_amd64.zip"
+        dest: /usr/local/bin
+        remote_src: true
+        mode: 0755
+    - name: git checkout nvim plugin packer
+      become: false
+      ansible.builtin.git:
+        repo: 'https://github.com/wbthomason/packer.nvim'
+        dest: "/home/{{ username }}/.local/share/nvim/site/pack/packer/start/packer.nvim"
+        depth: 1
+
+    - name: old vim clone
+      become: false
+      ansible.builtin.git:
+        repo: "https://github.com/amix/vimrc.git"
+        dest: "/home/{{ username }}/.vim_runtime"
+        depth: 1
+    - name: old vim run
+      become: false
+      ansible.builtin.shell:
+        cmd: "~/.vim_runtime/install_awesome_vimrc.sh"
+
 
 ...
