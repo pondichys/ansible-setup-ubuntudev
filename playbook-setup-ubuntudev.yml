@@ -170,6 +170,24 @@
     tags: 
     - restic
 
+  - name: Create user directory for nerd fonts
+    ansible.builtin.file:
+      path: /home/{{ username }}/.local/share/fonts/JetBrainsMono
+      state: directory
+    tags:
+    - base
+    - fonts
+
+  - name: Install jetbrains mono nerd font
+    ansible.builtin.unarchive:
+      src: https://github.com/ryanoasis/nerd-fonts/releases/download/v2.2.2/JetBrainsMono.zip
+      dest: /home/{{ username }}/.local/share/fonts/JetBrainsMono
+      remote_src: true
+      mode: 0755
+    tags:
+    - base
+    - fonts
+
   - name: Download and install starship.rs
     become: true
     ansible.builtin.unarchive:
@@ -191,7 +209,7 @@
     
   - name: Set dotfiles
     ansible.builtin.shell:
-      chdir: "/home/{{ username}}/.dotfiles"
+      chdir: "/home/{{ username }}/.dotfiles"
       cmd: "for DOT in zsh starship;do stow $DOT; done"
     tags:
     - dotfiles
