@@ -112,11 +112,17 @@
         force: true
 
     - name: Install https://packages.microsoft.com repo
-      become: true
       ansible.builtin.apt_repository:
         repo: 'deb [signed-by=/etc/apt/keyrings/microsoft.asc, arch=amd64] https://packages.microsoft.com/repos/azure-cli {{ ansible_distribution_release }} main'
         filename: azure-cli
         state: present
+
+    - name: install az cli
+      ansible.builtin.apt:
+        name: 
+          - azure-cli
+          - chromium-browser #to install teams
+        state: latest
 
     - name: Install vscode
       become: true
@@ -196,8 +202,12 @@
           state: present
       - name: install basic rigolith
         ansible.builtin.apt:
-          name: [regolith-desktop, "regolith-look-*", i3xrocks-focused-window-name, i3xrocks-rofication, i3xrocks-info, i3xrocks-app-launcher, i3xrocks-memory, i3xrocks-battery]
+          name: [regolith-desktop, regolith-look-dracula, i3xrocks-focused-window-name, i3xrocks-rofication, i3xrocks-info, i3xrocks-app-launcher, i3xrocks-memory, i3xrocks-battery]
           state: latest
+      - name: remove regolith-i3-session instead using own i3 config
+        ansible.builtin.apt:
+          name: regolith-i3-session
+          state: absent
   
   # This task only install the keybase repo and package. You need to run run_keybase to set it up.
   - name: Install keybase
