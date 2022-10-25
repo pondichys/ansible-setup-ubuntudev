@@ -5,8 +5,20 @@
   #connection: local
 
   vars:
-    starship_version: '1.11.0'
     username: "{{ ansible_user_id }}"
+    starship_version: '1.11.0'
+    restic_version: '0.13.1'
+    bat_version: '0.22.1'
+    exa_version: '0.10.0'
+    ms_mirror: 'https://packages.microsoft.com'
+    jq_version: '1.6'
+    yq_version: '4.23.1'
+    tfdocs_version: '0.16.0'
+    kubectl_version: '1.21.9'
+    kubectx_version: '0.9.4'
+    kustomize_version: '4.5.5'
+    k9s_version: '0.26.3'
+    helm_version: '3.9.0'
   
   tasks:
   - name: Setup base
@@ -23,7 +35,6 @@
       ansible.builtin.apt:
         name: [git, curl, wget, python3-pip, python3-venv, apt-transport-https, ca-certificates, software-properties-common, bzip2, unzip, tree, stow, zsh]
         state: latest
-
 
     - name: Setup zsh as default shell for user {{ username }}
       ansible.builtin.user:
@@ -63,6 +74,75 @@
        groups: 
        - docker
 
+  - name: Cool exotic tools
+    become: true
+    tags: 
+    - base
+    - exa
+    - bat
+    block:
+    - name: Install exa package
+      ansible.builtin.unarchive:
+        src: https://github.com/ogham/exa/releases/download/v{{ exa_version }}/exa-linux-x86_64-v{{ exa_version }}.zip
+        dest: /usr/local
+        include: [bin/exa]
+        mode: 0755
+        remote_src: true
+
+    - name: Install bat package (next generation cat)
+      ansible.builtin.apt:
+        deb: https://github.com/sharkdp/bat/releases/download/v{{ bat_version }}/bat_{{ bat_version  }}_amd64.deb
+
+
+  - name: Setup Microsoft
+    when: ansible_facts['distribution_major_version'] | int >= 22
+    become: true
+    tags:
+    - vscode
+    - azcli
+    block:
+    - name: Install https://packages.microsoft.com key
+      ansible.builtin.get_url:
+        url: '{{ ms_mirror }}/keys/microsoft.asc'
+        dest: /etc/apt/keyrings/microsoft.asc
+        mode: 0644
+        force: true
+
+    - name: Install https://packages.microsoft.com repo
+      become: true
+      ansible.builtin.apt_repository:
+        repo: 'deb [signed-by=/etc/apt/keyrings/microsoft.asc, arch=amd64] https://packages.microsoft.com/repos/azure-cli {{ ansible_distribution_release }} main'
+        filename: azure-cli
+        state: present
+
+    - name: Install vscode
+      become: true
+      ansible.builtin.apt:
+        deb: https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64
+
+  - name: cause backups are always nice
+    tags:
+    - restic
+    block:
+    - name: Download restic
+      ansible.builtin.get_url:
+        url: https://github.com/restic/restic/releases/download/v{{ restic_version }}/restic_{{ restic_version }}_linux_amd64.bz2
+        dest: /tmp/restic.bz2
+        mode: 0755
+        force: true
+    
+    - name: Decompress and copy the binary to /usr/local/bin
+      become: true
+      ansible.builtin.shell: bunzip2 -c /tmp/restic.bz2 > /usr/local/bin/restic
+      args:
+        creates: "/usr/local/bin/restic"
+
+    - name: Set permissions on /usr/local/bin/restic
+      become: true
+      ansible.builtin.file:
+        path: /usr/local/bin/restic
+        mode: 0755
+        owner: root
 
   - name: Download and install starship.rs
     become: true
@@ -114,4 +194,12 @@
         ansible.builtin.apt:
           name: [regolith-desktop, "regolith-look-*", i3xrocks-focused-window-name, i3xrocks-rofication, i3xrocks-info, i3xrocks-app-launcher, i3xrocks-memory, i3xrocks-battery]
           state: latest
+  
+  # This task only install the keybase repo and package. You need to run run_keybase to set it up.
+  - name: Install keybase
+    become: true
+    ansible.builtin.apt:
+      deb: https://prerelease.keybase.io/keybase_amd64.deb
+    tags:
+    - keybase
 ...
