@@ -165,6 +165,7 @@
       ansible.builtin.git:
         repo: "{{ dotfiles_repo }}"
         dest: "/home/{{ username }}/.dotfiles"
+        force: yes
       tags:
       - dotfiles
     - name: set dotfiles
@@ -259,6 +260,11 @@
       become: false
       ansible.builtin.shell:
         cmd: "~/.vim_runtime/install_awesome_vimrc.sh"
+  - name: install xfce4-clipman
+    become: true
+    ansible.builtin.apt:
+      name: xfce4-clipman
+      state: latest
 
 
 ...
