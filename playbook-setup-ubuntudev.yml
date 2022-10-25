@@ -1,6 +1,6 @@
 ---
 # ansible playbook to setup a ubuntu development box
-- hosts: 192.168.122.73
+- hosts: test
   #- hosts: 127.0.0.1
   #connection: local
 
@@ -9,75 +9,59 @@
     username: "{{ ansible_user_id }}"
   
   tasks:
-  - name: Install specific git ppa repository
+  - name: Setup base
     become: true
-    ansible.builtin.apt_repository:
-      repo: ppa:git-core/ppa
-      state: present
-      filename: git
     tags: base
+    block:
+    - name: Install specific git ppa repository
+      ansible.builtin.apt_repository:
+        repo: ppa:git-core/ppa
+        state: present
+        filename: git
 
-  - name: Install base packages
-    become: true
-    ansible.builtin.apt:
-      name: [git, curl, wget, python3-pip, python3-venv, apt-transport-https, ca-certificates, software-properties-common, bzip2, unzip, tree, stow]
-      state: present
-    tags: base 
+    - name: Install base packages
+      ansible.builtin.apt:
+        name: [git, curl, wget, python3-pip, python3-venv, apt-transport-https, ca-certificates, software-properties-common, bzip2, unzip, tree, stow, zsh]
+        state: latest
 
-  - name: Install zsh
-    become: true
-    ansible.builtin.apt:
-      name: zsh
-      state: present
-    tags: 
-    - base
-    - zsh
 
-  - name: Setup zsh as default shell for user {{ username }}
-    become: true
-    ansible.builtin.user:
-      name: "{{ username }}"
-      shell: /usr/bin/zsh
-    tags: 
-    - base
-    - zsh
+    - name: Setup zsh as default shell for user {{ username }}
+      ansible.builtin.user:
+        name: "{{ username }}"
+        shell: /usr/bin/zsh
 
-  - name: Add Docker apt key - new method
+  - name: Setup Docker
     become: true
-    ansible.builtin.get_url:
-      url: https://download.docker.com/linux/ubuntu/gpg
-      dest: /etc/apt/keyrings/docker.asc
-      mode: 0644
-      force: true
+    tags: docker
     when: ansible_facts['distribution_major_version'] | int >= 22 # Should not run on WSL and Ubuntu > 22
+    block:
+    - name: Add Docker apt key - new method
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: 0644
+        force: true
 
-  - name: Configure Docker apt repository
-    become: true
-    ansible.builtin.apt_repository:
-      repo: deb [signed-by=/etc/apt/keyrings/docker.asc, arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
-      state: present
-      filename: docker
-    when: ansible_facts['distribution_major_version'] | int >= 22 # Should not run on WSL or Ubuntu >= 22
-    tags: docker
+    - name: Configure Docker apt repository
+      ansible.builtin.apt_repository:
+        repo: deb [signed-by=/etc/apt/keyrings/docker.asc, arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+        filename: docker
 
-  - name: Install Docker
-    become: true
-    ansible.builtin.apt:
-      name: 
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      state: present
-    tags: docker
+    - name: Install Docker
+      ansible.builtin.apt:
+        name: 
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        state: latest
 
-  - name: Add user {{ username }} to docker group
-    become: true
-    ansible.builtin.user:
-      name: "{{ username }}"
-      append: true
-      groups: 
-      - docker
-    tags: docker
+    - name: Add user {{ username }} to docker group
+      ansible.builtin.user:
+       name: "{{ username }}"
+       append: true
+       groups: 
+       - docker
 
 
   - name: Download and install starship.rs
@@ -92,22 +76,42 @@
     - starship
     - zsh
 
-  - name: git checkout dotfiles
-    ansible.builtin.git:
-      repo: 'https://github.com/pondichys/.dotfiles.git'
-      dest: "/home/{{ username }}/.dotfiles"
-    tags:
-    - dotfiles
-  - name: set dotfiles
-    ansible.builtin.shell:
-      chdir: "/home/{{ username}}/.dotfiles"
-      cmd: "for DOT in zsh starship;do stow $DOT; done"
-    tags:
-    - dotfiles
+  - name: Setup Dotfiles
+    block:
+    - name: git checkout dotfiles
+      ansible.builtin.git:
+        repo: 'https://github.com/pondichys/.dotfiles.git'
+        dest: "/home/{{ username }}/.dotfiles"
+      tags:
+      - dotfiles
+    - name: set dotfiles
+      ansible.builtin.shell:
+        chdir: "/home/{{ username}}/.dotfiles"
+        cmd: "for DOT in zsh starship;do stow $DOT; done"
+      tags:
+      - dotfiles
 
   - name: install latest distrobox
     become: true
     ansible.builtin.shell:
       cmd: "curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh"
 
+  - name: rigolith #TODO: modular system version
+    tags:
+    - rigolith
+    become: true
+    block:
+      - name: apt key
+        ansible.builtin.apt_key:
+          url: "https://regolith-desktop.org/regolith.key"
+          keyring: "/usr/share/keyrings/regolith-archive-keyring.gpg"
+      - name: add repo
+        ansible.builtin.apt_repository:
+          repo: deb [signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg, arch=amd64] https://regolith-desktop.org/release-ubuntu-jammy-amd64 jammy main
+          filename: rigolith
+          state: present
+      - name: install basic rigolith
+        ansible.builtin.apt:
+          name: [regolith-desktop, "regolith-look-*", i3xrocks-focused-window-name, i3xrocks-rofication, i3xrocks-info, i3xrocks-app-launcher, i3xrocks-memory, i3xrocks-battery]
+          state: latest
 ...
