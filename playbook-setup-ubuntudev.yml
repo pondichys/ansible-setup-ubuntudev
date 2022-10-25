@@ -19,6 +19,7 @@
     kustomize_version: '4.5.5'
     k9s_version: '0.26.3'
     helm_version: '3.9.0'
+    dotfiles_repo: 'https://github.com/pondichys/.dotfiles.git'
   
   tasks:
   - name: Setup base
@@ -160,7 +161,7 @@
     block:
     - name: git checkout dotfiles
       ansible.builtin.git:
-        repo: 'https://github.com/pondichys/.dotfiles.git'
+        repo: "{{ dotfiles_repo }}"
         dest: "/home/{{ username }}/.dotfiles"
       tags:
       - dotfiles
@@ -202,4 +203,23 @@
       deb: https://prerelease.keybase.io/keybase_amd64.deb
     tags:
     - keybase
+
+  - name: Setup neovim
+    become: true
+    block:
+    - name: add key
+      ansible.builtin.apt_key:
+        keyserver: keyserver.ubuntu.com
+        id: 9DBB0BE9366964F134855E2255F96FCF8231B6DD  
+    - name: add repo
+      ansible.builtin.apt_repository:
+        repo: ppa:neovim-ppa/unstable
+        state: present
+        filename: neovim
+
+    - name: install nvim
+      ansible.builtin.apt:
+        name: neovim
+        state: latest
+
 ...
