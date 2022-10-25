@@ -1,8 +1,9 @@
-# Setup Ubuntu development environment - STIB-MIVB DCP alptop
+# Setup Ubuntu development environment - STIB-MIVB DCP laptop
 
 Ansible playbook to configure a Ubuntu workstation for my job as DCP engineer. 
 
-This playbook is manimalistic as most of the tools we use for our day-to-day job are packaged in a container image that we use in conjunction with Distrobox. This allows us to be sure that everyone is working with the same version of the tools.
+This playbook is minimalistic as most of the tools we use for our day-to-day job are packaged in a container image that we use in conjunction with Distrobox.
+This allows us to be sure that everyone is working with the same version of the tools.
 
 ## Prerequisites
 
