@@ -5,6 +5,7 @@
 
   vars:
     bat_version: '0.22.1'
+    delta_version: '0.14.0'
     exa_version: '0.10.0'
     ms_mirror: 'https://packages.microsoft.com'
     jq_version: '1.6'
@@ -75,6 +76,14 @@
     tags:
     - base
     - bat
+
+  - name: Install git-delta package (intuitive pager for git)
+    become: true
+    ansible.builtin.apt:
+      deb: https://github.com/dandavison/delta/releases/download/{{ delta_version }}/git-delta_{{ delta_version }}_amd64.deb
+    tags:
+    - base
+    - delta
 
   - name: Add Docker apt key
     become: true
